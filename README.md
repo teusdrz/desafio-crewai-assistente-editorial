@@ -84,10 +84,15 @@ O **Gemini (free key)** será usado **somente como LLM base**.
 ## Exemplo de Fluxo de Interação
 
 > **Usuário**: “Quero saber sobre ‘A Abelha’.”
+
 > **Bot**: (executa `get_book_details`) “’A Abelha’… Sinopse: … Quer ver onde comprar?”
+
 > **Usuário**: “Em São Paulo?”
+
 > **Bot**: (executa `find_stores_selling_book` com `city="São Paulo"`) “Na cidade: … Online: …”
+
 > **Usuário**: “Abra um ticket ‘Dúvida sobre submissão’…”
+
 > **Bot**: (executa `open_support_ticket`) “Ticket aberto! ID: TCK-…; status: open.”
 
 ---
