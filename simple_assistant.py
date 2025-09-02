@@ -137,11 +137,14 @@ class SimpleEditorialAssistant:
                     book_title = match.group(1).strip()
                     return self.find_stores(book_title)
         
-        # Padrões para busca de livros
+        # Padrões para busca de livros (mais específicos)
         book_patterns = [
-            r"(?:tell me about|about|sobre|details|detalhes|info|informações).*?([a-zA-ZÀ-ÿ\-\s]+)",
-            r"(?:book|livro|título).*?([a-zA-ZÀ-ÿ\-\s]+)",
-            r"^([a-zA-ZÀ-ÿ\-\s]+)$"  # Padrão mais simples para o final
+            r"(?:quero saber sobre|tell me about|about|sobre|details|detalhes|info|informações).*?['\"](.*?)['\"]",
+            r"(?:quero saber sobre|tell me about|about|sobre|details|detalhes|info|informações).*?([A-ZÀ-ÿ][a-zA-ZÀ-ÿ\-\s]+)",
+            r"(?:book|livro|título).*?['\"](.*?)['\"]",
+            r"(?:book|livro|título).*?([A-ZÀ-ÿ][a-zA-ZÀ-ÿ\-\s]+)",
+            r"^['\"](.*?)['\"]$",  # Título entre aspas
+            r"^([A-ZÀ-ÿ][a-zA-ZÀ-ÿ\-\s]+)$"  # Título simples começando com maiúscula
         ]
         
         # Verificar busca de livros
