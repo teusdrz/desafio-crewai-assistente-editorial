@@ -1,669 +1,264 @@
-# Desafio Grupo Elo Editorial: Assistente Editorial Multiagente com CrewAI + Gemini
+# Elo Editorial Group - Editorial Assistant
 
-Olá, dev! O **Grupo Elo Editorial** te dá as boas-vindas ao nosso desafio de desenvolvimento.
+A sophisticated multiagent editorial assistant built with CrewAI and Google's Gemini LLM. This system helps customers find book information, locate stores, and provides customer support for the Elo Editorial Group.
 
-Buscamos pessoas inovadoras para nos ajudar a conectar nossos autores e livros com o público leitor de formas criativas. Todo o material de que você precisa para começar está neste repositório. O objetivo é avaliar suas habilidades na construção de um agente conversacional utilizando o poderoso framework de agentes e tarefas: **CrewAI**.
+## 🚀 Features
 
-## Objetivo
+- **📖 Book Catalog Search**: Get detailed information about books including title, author, synopsis, and availability
+- **🏪 Store Finder**: Find physical and online stores where books are available, with city-specific searches
+- **🎫 Support Ticket System**: Create and manage customer support tickets
+- **🤖 Intelligent Intent Detection**: Automatically understands user needs and routes to appropriate agents
+- **🎯 Multi-Agent Architecture**: Specialized agents for different types of inquiries
 
-Construir um **Assistente Editorial Multiagente** simples que:
+## 🏗️ Architecture
 
-1. consulta um **catálogo**,
-2. informa sobre os **livros**,
-2. indica **onde comprar**,
-3. abre um **ticket simulado** (opcional).
+### Agents
+- **Orchestrator Agent**: Detects user intent and coordinates with specialized agents
+- **Catalog Agent**: Handles book searches and store location queries
+- **Support Agent**: Manages customer service and ticket creation
 
-O foco está em **arquitetura clara**, **código limpo** e no uso de **CrewAI** para orquestração de agentes e tarefas.
-O **Gemini (free key)** será usado **somente como LLM base**.
+### Tools
+- `get_book_details(book_title)`: Retrieves book information from catalog
+- `find_stores_selling_book(book_title, city?)`: Finds stores selling specific books
+- `open_support_ticket(name, email, subject, message)`: Creates support tickets
 
----
+## 📦 Installation
 
-## Escopo Mínimo
+### Prerequisites
+- Python 3.8+
+- Google Gemini API key (free tier available)
 
-### Agentes (organizar os agentes à sua preferência)
+### Setup
 
-* **Orquestrador**: detecta intenção e delega tarefas.
-* **Catálogo/Comercial**: busca detalhes do livro e pontos de venda.
+1. **Clone the repository**:
+```bash
+git clone <repository-url>
+cd desafio-crewai-assistente-editorial
+```
 
-> Opcional (+1 agente): **Suporte/Autores** (respostas de submissão + abertura de ticket).
+2. **Install dependencies**:
+```bash
+pip install -r requirements.txt
+```
 
-### Ferramentas (implementadas diretamente, chamadas via CrewAI)
+3. **Environment configuration**:
+```bash
+cp .env.example .env
+```
 
-1. `get_book_details(book_title: string)`
+Edit `.env` and add your Gemini API key:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-1.5-flash
+```
 
-   * Retorna `{title, author, imprint, release_date, synopsis, availability}` do `mock_catalog.json`.
-2. `find_stores_selling_book(book_title: string, city?: string)`
+### Getting a Gemini API Key
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create a new API key
+3. Copy the key to your `.env` file
 
-   * Usa `availability` do livro; se `city` ausente/indisponível, retorna `availability["Online"]`.
-3. `open_support_ticket(name, email, subject, message)`
+## 🎮 Usage
 
-   * Faz `append` em `data/mock_tickets.json` com `timestamp` e `status: "open"`.
+### Command Line Interface
 
-### Dados
+Run the interactive CLI:
+```bash
+python main.py
+```
 
-* `data/mock_catalog.json` (fonte: estrutura fixa, `release_date` em **DD/MM/AAAA**, chave literal **"Online"**).
-* `data/mock_tickets.json` (inicia como `[]`).
+### Web API
 
-### Fluxo esperado
+Start the FastAPI server:
+```bash
+python api.py
+```
 
-* Chat mantém **contexto básico** da sessão.
-* Orquestrador classifica: **Detalhes**, **Onde comprar**, **Suporte**.
-* CrewAI chama as funções necessárias e consolida a resposta.
+The API will be available at `http://localhost:8000` with automatic documentation at `http://localhost:8000/docs`.
 
----
+#### API Endpoints
 
-## Requisitos Técnicos
+- `POST /chat`: Send messages to the assistant
+- `POST /ticket`: Create support tickets
+- `GET /books`: List available books
+- `GET /health`: Health check
 
-* **Linguagem**: Python **ou** Node.js.
-* **Gemini**: usar API oficial com `GEMINI_API_KEY` (free key) como LLM base.
-* **CrewAI**: obrigatório para estruturar **Agents** e **Tasks**.
-* **Interface**: CLI **ou** pequena API (FastAPI/Express).
-* **Logs**: intenção detectada, ferramenta chamada, duração e erros.
-* **Segurança**: não expor a key; use `.env`.
+## 💬 Example Interactions
 
----
+### Book Information
+```
+User: "Tell me about A Abelha"
+Assistant: "A Abelha" is a delicate work by Milton Célio de Oliveira Filho, published by Elo Editora on 15/04/2022. The book explores the universe of bees and their importance to nature. With illustrations by Olavo Costa, it's a poetic and educational journey...
+```
 
-## Entrega
+### Store Finder
+```
+User: "Where can I buy A Baleia-azul in São Paulo?"
+Assistant: You can find "A Baleia-azul" in São Paulo at:
+- Blooks Livraria
 
-* **Repositório GitHub** (recomendado) com:
+Online options:
+- Amazon.com.br
+- Magazine Luiza
+- Submarino
+```
 
-  * Código e **README** (setup + execução).
-  * `.env.example`:
+### Support Ticket
+```
+User: "I need help with a book submission"
+Assistant: I understand you need support regarding book submissions. To create a support ticket, I would need your name, email, and detailed description...
+```
 
-    ```bash
-    GEMINI_API_KEY=SEU_TOKEN_FREE_AQUI
-    GEMINI_MODEL=gemini-1.5-flash
-    ```
-  * `data/mock_catalog.json` e `data/mock_tickets.json`.
-  * `requirements.txt` ou outros requisitos.
+## 📁 Project Structure
 
-> Alternativa: Notebook (Colab/Jupyter) com células executáveis e instruções para a chave.
+```
+desafio-crewai-assistente-editorial/
+├── src/
+│   ├── agents/
+│   │   ├── __init__.py
+│   │   └── editorial_agents.py      # Agent definitions
+│   ├── tasks/
+│   │   ├── __init__.py
+│   │   └── editorial_tasks.py       # Task definitions
+│   ├── tools/
+│   │   ├── __init__.py
+│   │   └── editorial_tools.py       # Tool implementations
+│   ├── config.py                    # Configuration and LLM setup
+│   ├── editorial_assistant.py       # Main assistant class
+│   └── __init__.py
+├── data/
+│   ├── mock_catalog.json           # Book catalog data
+│   └── mock_tickets.json           # Support tickets storage
+├── main.py                         # CLI interface
+├── api.py                          # FastAPI web interface
+├── requirements.txt                # Python dependencies
+├── .env.example                    # Environment template
+└── README.md                       # Documentation
+```
 
----
+## 🛠️ Development
 
-## Exemplo de Fluxo de Interação
+### Running Tests
+```bash
+python -m pytest tests/
+```
 
-> **Usuário**: “Quero saber sobre ‘A Abelha’.”
+### Code Quality
+```bash
+# Format code
+black src/
 
-> **Bot**: (executa `get_book_details`) “’A Abelha’… Sinopse: … Quer ver onde comprar?”
+# Lint code
+flake8 src/
+```
 
-> **Usuário**: “Em São Paulo?”
-
-> **Bot**: (executa `find_stores_selling_book` com `city="São Paulo"`) “Na cidade: … Online: …”
-
-> **Usuário**: “Abra um ticket ‘Dúvida sobre submissão’…”
-
-> **Bot**: (executa `open_support_ticket`) “Ticket aberto! ID: TCK-…; status: open.”
-
----
-
-## Critérios de Avaliação
-
-1. **Funcionalidade** — leitura do `mock_catalog.json`; escrita em `mock_tickets.json`; manutenção de contexto básico.
-2. **Arquitetura** — uso de CrewAI (agents/tasks) e módulos separados.
-3. **UX & Robustez** — respostas objetivas, mensagens de erro úteis, logs mínimos.
-4. **Documentação** — README claro com exemplos.
-5. **Criatividade** — boas ideias para resolver o problema também serão bem avaliadas.
-
----
-
-## Para Começar: Recursos e Dados
-
-### Recursos Úteis
-
-* **Documentação da CrewAI:** [Página Principal](https://docs.crewai.com/en/introduction)
-* **Quickstarts:** [Python](https://ai.google.dev/gemini-api/docs/get-started/python) | [JavaScript/Node.js](https://ai.google.dev/gemini-api/docs/get-started/javascript)
-* **Google Colab:** [colab.research.google.com](https://colab.research.google.com)
-
-### Dados do Desafio (`mock_catalog.json`)
-
-Você deve usar este catálogo de dados fictício como sua "base de dados". Ele já está incluído neste repositório.
-
-<details>
-<summary>Clique para ver o conteúdo completo do mock_catalog.json</summary>
+### Adding New Books
+Edit `data/mock_catalog.json` to add new books following the existing structure:
 
 ```json
 {
-  "books": [
-    {
-      "title": "A Abelha",
-      "author": "Milton Célio de Oliveira Filho",
-      "imprint": "Elo Editora",
-      "release_date": "15/04/2022",
-      "synopsis": "Uma obra delicada que explora o universo das abelhas e sua importância para a natureza. Com ilustrações de Olavo Costa, o livro é uma jornada poética e educativa.",
-      "availability": {
-        "São Paulo": ["Livraria da Vila", "Livraria Cultura"],
-        "Rio de Janeiro": ["Livraria Travessa"],
-        "Online": ["Amazon.com.br", "Loja Elo Editorial"]
-      }
-    },
-    {
-      "title": "A Baleia-azul",
-      "author": "Theo de Oliveira",
-      "imprint": "Perabook",
-      "release_date": "10/09/2023",
-      "synopsis": "Acompanhe a vida majestosa do maior animal do planeta. Com ilustrações de Felipe Tognoli, esta obra mergulha nos mistérios dos oceanos de forma cativante.",
-      "availability": {
-        "São Paulo": ["Blooks Livraria"],
-        "Online": ["Amazon.com.br", "Magazine Luiza", "Submarino"]
-      }
-    },
-    {
-      "title": "A Bicicleta do Tempo",
-      "author": "Daniela Pinotti e Marcelo Maluf",
-      "imprint": "Elo Editora",
-      "release_date": "20/05/2021",
-      "synopsis": "Uma viagem fantástica sobre duas rodas que atravessa gerações e histórias. Ilustrado por Matheus Furtado, este livro fala sobre memória, amizade e as voltas que a vida dá.",
-      "availability": {
-        "Curitiba": ["Livrarias Curitiba"],
-        "Belo Horizonte": ["Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Americanas.com"]
-      }
-    },
-    {
-      "title": "A Borboleta",
-      "author": "Theo de Oliveira",
-      "imprint": "Perabook",
-      "release_date": "12/02/2024",
-      "synopsis": "Celebra a beleza e a transformação da vida através do ciclo da borboleta. As ilustrações de Rosana Ferreira dão cor e vida a esta delicada narrativa.",
-      "availability": {
-        "Online": ["Amazon.com.br", "Loja Elo Editorial"]
-      }
-    },
-    {
-      "title": "A Cinderela dos Cajueiros",
-      "author": "Severino Rodrigues",
-      "imprint": "Elo Editora",
-      "release_date": "30/07/2020",
-      "synopsis": "Uma releitura do clássico conto de fadas, ambientado no sertão nordestino. Com a arte de Rodrigo Mafra, a história ganha novos sabores e cores.",
-      "availability": {
-        "Salvador": ["Livraria LDM"],
-        "Rio de Janeiro": ["Livraria Travessa"],
-        "Online": ["Amazon.com.br", "Estante Virtual"]
-      }
-    },
-    {
-      "title": "A conquista de um sonho",
-      "author": "Regina Drummond",
-      "imprint": "Perabook",
-      "release_date": "18/11/2022",
-      "synopsis": "Uma história inspiradora sobre perseverança e a importância de lutar por seus objetivos. Ilustrado pela própria autora, Regina Drummond.",
-      "availability": {
-        "São Paulo": ["Livraria da Vila", "Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Magazine Luiza"]
-      }
-    },
-    {
-      "title": "A Cuca",
-      "author": "Theo de Oliveira",
-      "imprint": "Elo Editora",
-      "release_date": "01/08/2021",
-      "synopsis": "Mergulhe no folclore brasileiro com esta história sobre a Cuca, a temível feiticeira com cabeça de jacaré. Com vibrantes ilustrações de Danilo Taqueto.",
-      "availability": {
-        "São Paulo": ["Livraria da Vila"],
-        "Salvador": ["Livraria LDM"],
-        "Online": ["Amazon.com.br", "Submarino"]
-      }
-    },
-    {
-      "title": "A Escola Lá Fora",
-      "author": "Janaina Tokitaka",
-      "imprint": "Perabook",
-      "release_date": "25/03/2023",
-      "synopsis": "Uma reflexão sobre o aprendizado que acontece fora das paredes da sala de aula. Escrito e ilustrado por Janaina Tokitaka, o livro convida a explorar o mundo.",
-      "availability": {
-        "São Paulo": ["Livraria Cultura", "Blooks Livraria"],
-        "Online": ["Amazon.com.br", "Loja Elo Editorial"]
-      }
-    },
-    {
-      "title": "A estranha atração dos planetas vizinhos",
-      "author": "Claudio Fragata",
-      "imprint": "Elo Editora",
-      "release_date": "09/06/2024",
-      "synopsis": "Uma história sobre conexões inesperadas e as forças que nos unem. Escrito e ilustrado com a sensibilidade de Claudio Fragata.",
-      "availability": {
-        "Rio de Janeiro": ["Livraria Travessa"],
-        "Online": ["Amazon.com.br (Pré-venda)"]
-      }
-    },
-    {
-      "title": "A Fabulosa Arca de Noá",
-      "author": "Leandro Carloni",
-      "imprint": "Perabook",
-      "release_date": "14/10/2021",
-      "synopsis": "Uma divertida e poética releitura da história da Arca de Noé, com personagens cativantes e ilustrações encantadoras de Fernanda Ozilak.",
-      "availability": {
-        "Curitiba": ["Livrarias Curitiba"],
-        "Porto Alegre": ["Livraria Cameron"],
-        "Online": ["Amazon.com.br", "Americanas.com"]
-      }
-    },
-    {
-      "title": "A Família Formiga",
-      "author": "Augusto Pessoa",
-      "imprint": "Elo Editora",
-      "release_date": "22/08/2022",
-      "synopsis": "Descubra o dia a dia de uma agitada família de formigas e aprenda sobre trabalho em equipe e união. Com as divertidas ilustrações de Heitor Neto.",
-      "availability": {
-        "Belo Horizonte": ["Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Magazine Luiza"]
-      }
-    },
-    {
-      "title": "A Fantástica Viagem de Okiké, o Macaquinho de Nariz Vermelho",
-      "author": "G. Guillen e Marcel Tenório da",
-      "imprint": "Perabook",
-      "release_date": "03/03/2020",
-      "synopsis": "A jornada de um macaquinho especial em busca de aceitação e de seu lugar no mundo. As ilustrações de Cris Mendes dão vida a essa aventura na floresta.",
-      "availability": {
-        "São Paulo": ["Livraria da Vila"],
-        "Online": ["Amazon.com.br", "Estante Virtual"]
-      }
-    },
-    {
-      "title": "A Formiga",
-      "author": "Milton Célio de Oliveira Filho",
-      "imprint": "Elo Editora",
-      "release_date": "19/04/2022",
-      "synopsis": "Um olhar poético sobre a vida da formiga, sua força e persistência. Com a arte delicada de Ana Laura Alvarenga, o livro encanta pela simplicidade.",
-      "availability": {
-        "Online": ["Loja Elo Editorial", "Amazon.com.br"]
-      }
-    },
-    {
-      "title": "A Girafa",
-      "author": "Theo de Oliveira",
-      "imprint": "Perabook",
-      "release_date": "11/07/2023",
-      "synopsis": "Explore a savana e conheça mais sobre a elegante girafa. Um livro informativo e visualmente rico, com ilustrações de Tainan Rocha.",
-      "availability": {
-        "São Paulo": ["Livraria Cultura"],
-        "Rio de Janeiro": ["Livraria Travessa"],
-        "Online": ["Amazon.com.br"]
-      }
-    },
-    {
-      "title": "A girafa que comeu a lua",
-      "author": "Francine Bittencourt",
-      "imprint": "Elo Editora",
-      "release_date": "08/12/2021",
-      "synopsis": "Uma história lúdica sobre sonhos, imaginação e até onde a curiosidade pode nos levar. Com as ilustrações mágicas de Vanessa Prezoto.",
-      "availability": {
-        "São Paulo": ["Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Submarino"]
-      }
-    },
-    {
-      "title": "A História de Virgulino",
-      "author": "Milton Célio de Oliveira Filho",
-      "imprint": "Perabook",
-      "release_date": "21/06/2022",
-      "synopsis": "Uma narrativa inspirada na figura de Lampião, adaptada para o público jovem. Com a arte em estilo de xilogravura de Adelino Francisco dos Santos Neto.",
-      "availability": {
-        "Salvador": ["Livraria LDM"],
-        "Online": ["Estante Virtual", "Amazon.com.br"]
-      }
-    },
-    {
-      "title": "A ilha do tesouro",
-      "author": "Robert Louis Stevenson",
-      "imprint": "Elo Editora",
-      "release_date": "15/01/2022",
-      "synopsis": "A clássica aventura de piratas e mapas, em uma edição especial com a arte moderna de Weberson Santiago, que dá nova vida à jornada de Jim Hawkins.",
-      "availability": {
-        "São Paulo": ["Livraria Cultura", "Livraria Leitura"],
-        "Rio de Janeiro": ["Livraria Travessa"],
-        "Porto Alegre": ["Livraria Cameron"],
-        "Online": ["Amazon.com.br", "Americanas.com", "Estante Virtual"]
-      }
-    },
-    {
-      "title": "A jornada de Roweõ",
-      "author": "Angela Pappiani",
-      "imprint": "Perabook",
-      "release_date": "29/09/2020",
-      "synopsis": "Baseado em uma história real, o livro narra a jornada de um jovem Xavante. Com as impressionantes ilustrações de Mauricio Negro, é uma obra sobre cultura e resistência.",
-      "availability": {
-        "São Paulo": ["Blooks Livraria"],
-        "Online": ["Amazon.com.br", "Loja Elo Editorial"]
-      }
-    },
-    {
-      "title": "A Lenda da Vitória-régia",
-      "author": "Alice Bella",
-      "imprint": "Elo Editora",
-      "release_date": "16/03/2021",
-      "synopsis": "O reconto de uma das mais belas lendas do folclore amazônico. A arte de Danilo Taqueto captura a magia e o mistério da história da índia Naiá.",
-      "availability": {
-        "Manaus": ["Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Magazine Luiza"]
-      }
-    },
-    {
-      "title": "A Lenda do Guaraná",
-      "author": "Theo de Oliveira",
-      "imprint": "Perabook",
-      "release_date": "16/03/2021",
-      "synopsis": "Descubra a origem mítica do guaraná nesta adaptação de uma famosa lenda indígena. As ilustrações de Danilo Taqueto complementam a narrativa.",
-      "availability": {
-        "Manaus": ["Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Submarino"]
-      }
-    },
-    {
-      "title": "A mágica história de um livro encontrado",
-      "author": "Stella Maris Rezende",
-      "imprint": "Elo Editora",
-      "release_date": "11/11/2022",
-      "synopsis": "Um livro que fala sobre o amor pelos livros e as aventuras que eles podem nos proporcionar. Com ilustrações de Sid Meireles, é uma ode à leitura.",
-      "availability": {
-        "Belo Horizonte": ["Livraria Leitura"],
-        "São Paulo": ["Livraria da Vila"],
-        "Online": ["Amazon.com.br", "Estante Virtual"]
-      }
-    },
-    {
-      "title": "A megera domada",
-      "author": "William Shakespeare",
-      "imprint": "Perabook",
-      "release_date": "25/02/2023",
-      "synopsis": "Uma adaptação moderna e acessível da clássica comédia de Shakespeare, sobre os embates entre Catarina e Petrúquio. Com a arte arrojada de Rodrigo Mafra.",
-      "availability": {
-        "Online": ["Amazon.com.br", "Loja Elo Editorial", "Americanas.com"]
-      }
-    },
-    {
-      "title": "A menina da varanda",
-      "author": "Leo Cunha",
-      "imprint": "Elo Editora",
-      "release_date": "10/03/2018",
-      "synopsis": "Uma garota curiosa observa o mundo da sua varanda, criando histórias sobre as pessoas que passam. Uma obra sensível ilustrada por Rogério Coelho.",
-      "availability": {
-        "São Paulo": ["Livraria da Vila", "Livraria Leitura"],
-        "Belo Horizonte": ["Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Loja Elo Editorial", "Magazine Luiza"]
-      }
-    },
-    {
-      "title": "A Minhoca",
-      "author": "Paulla Thompson",
-      "imprint": "Perabook",
-      "release_date": "07/07/2024",
-      "synopsis": "De forma divertida, este livro mostra a importância das minhocas para o solo e para o meio ambiente. Com as bem-humoradas ilustrações de Monge.",
-      "availability": {
-        "Online": ["Amazon.com.br (Pré-venda)"]
-      }
-    },
-    {
-      "title": "A Minhoca com Dor de Barriga",
-      "author": "Adriana Yazbek",
-      "imprint": "Elo Editora",
-      "release_date": "14/01/2020",
-      "synopsis": "O que será que uma minhoca comeu para ficar com dor de barriga? Uma história divertida e cheia de imaginação, ilustrada por Isabella Guizalberti.",
-      "availability": {
-        "São Paulo": ["Livraria Cultura"],
-        "Online": ["Amazon.com.br"]
-      }
-    },
-    {
-      "title": "A Mula sem Cabeça",
-      "author": "Milton Célio de Oliveira Filho",
-      "imprint": "Perabook",
-      "release_date": "28/10/2021",
-      "synopsis": "Mais uma lenda do folclore brasileiro ganha vida nesta obra. Descubra a história da Mula sem Cabeça com as ilustrações de Heitor Neto.",
-      "availability": {
-        "Online": ["Amazon.com.br", "Estante Virtual"]
-      }
-    },
-    {
-      "title": "A Poça d’Água",
-      "author": "Ana Rapha Nunes",
-      "imprint": "Elo Editora",
-      "release_date": "18/05/2023",
-      "synopsis": "Uma simples poça d'água pode ser um universo de descobertas e brincadeiras. Com as criativas ilustrações de Paula Kranz.",
-      "availability": {
-        "São Paulo": ["Livraria da Vila"],
-        "Curitiba": ["Livrarias Curitiba"],
-        "Online": ["Amazon.com.br"]
-      }
-    },
-    {
-      "title": "A poesia do nome",
-      "author": "Vários Autores",
-      "imprint": "Perabook",
-      "release_date": "05/11/2024",
-      "synopsis": "Uma antologia que celebra o poder e a beleza dos nomes através de poemas e contos de diversos autores talentosos. Uma coletânea essencial.",
-      "availability": {
-        "Online": ["Loja Elo Editorial", "Amazon.com.br"]
-      }
-    },
-    {
-      "title": "A Princesa e o Jasmim",
-      "author": "Georgina Martins",
-      "imprint": "Elo Editora",
-      "release_date": "12/04/2022",
-      "synopsis": "Uma releitura poética de contos orientais, sobre uma princesa e uma flor de jasmim mágica. A arte de Ana Laura Alvarenga transporta o leitor para outro mundo.",
-      "availability": {
-        "Rio de Janeiro": ["Livraria Travessa"],
-        "Online": ["Amazon.com.br", "Magazine Luiza"]
-      }
-    },
-    {
-      "title": "A Pulga",
-      "author": "Alice Bella",
-      "imprint": "Perabook",
-      "release_date": "23/08/2023",
-      "synopsis": "A vida de uma pulga aventureira que salta de um animal para outro em busca de emoção. Ilustrado de forma cômica por Rosana Ferreira.",
-      "availability": {
-        "Online": ["Amazon.com.br"]
-      }
-    },
-    {
-      "title": "A Tartaruga",
-      "author": "Milton Célio de Oliveira Filho",
-      "imprint": "Elo Editora",
-      "release_date": "15/04/2022",
-      "synopsis": "Uma história sobre paciência, sabedoria e o ritmo da natureza, contada pela perspectiva de uma tartaruga. Com as ilustrações de Olavo Costa.",
-      "availability": {
-        "São Paulo": ["Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Loja Elo Editorial"]
-      }
-    },
-    {
-      "title": "A vaca que não parava de sonhar",
-      "author": "Zil de Paula",
-      "imprint": "Perabook",
-      "release_date": "09/02/2021",
-      "synopsis": "Conheça uma vaca que sonhava em voar, nadar e viajar pelo mundo. Uma história sobre imaginação e não ter medo de ser diferente, com ilustrações de Paula Kranz.",
-      "availability": {
-        "Belo Horizonte": ["Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Americanas.com"]
-      }
-    },
-    {
-      "title": "A viagem",
-      "author": "Jean Claude Alphen",
-      "imprint": "Elo Editora",
-      "release_date": "27/06/2023",
-      "synopsis": "Um livro de imagens sem texto que narra a emocionante viagem de um menino e seu barco. Escrito e ilustrado por Jean-Claude Alphen.",
-      "availability": {
-        "São Paulo": ["Livraria da Vila", "Livraria Cultura"],
-        "Online": ["Amazon.com.br", "Loja Elo Editorial"]
-      }
-    },
-    {
-      "title": "Abecê do macunaíma: O herói da nossa gente",
-      "author": "Claudio Fragata",
-      "imprint": "Perabook",
-      "release_date": "01/02/2024",
-      "synopsis": "Uma introdução divertida e acessível ao universo de Macunaíma, o herói sem nenhum caráter de Mário de Andrade. Com a arte icônica de Ciça Fittipaldi.",
-      "availability": {
-        "Rio de Janeiro": ["Livraria Travessa"],
-        "São Paulo": ["Blooks Livraria"],
-        "Online": ["Amazon.com.br"]
-      }
-    },
-    {
-      "title": "Além do mar",
-      "author": "Ana Rapha Nunes",
-      "imprint": "Perabook",
-      "release_date": "20/10/2025",
-      "synopsis": "Uma delicada história sobre conexão e saudade. Ilustrado por Rafa Antón, é um livro sobre as viagens que fazemos por dentro e por fora.",
-      "availability": {
-        "Online": ["Amazon.com.br (Pré-venda)", "Loja Elo Editorial (Pré-venda)"]
-      }
-    },
-    {
-      "title": "Ana bola e outras histórias corajosas",
-      "author": "Eliana Martins",
-      "imprint": "Elo Editora",
-      "release_date": "13/05/2021",
-      "synopsis": "Uma coletânea de contos sobre meninas fortes e corajosas que enfrentam seus medos. Com as expressivas ilustrações de Tainan Rocha.",
-      "availability": {
-        "Online": ["Amazon.com.br", "Magazine Luiza"]
-      }
-    },
-    {
-      "title": "Ao sol do novo mundo",
-      "author": "Edy Lima",
-      "imprint": "Perabook",
-      "release_date": "10/08/2022",
-      "synopsis": "A saga de uma família de imigrantes que chega ao Brasil em busca de uma nova vida. Uma narrativa histórica com a arte de Taísa Borges.",
-      "availability": {
-        "São Paulo": ["Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Estante Virtual"]
-      }
-    },
-    {
-      "title": "As ceroulas do rei",
-      "author": "Zil de Paula",
-      "imprint": "Elo Editora",
-      "release_date": "04/04/2023",
-      "synopsis": "Uma releitura bem-humorada do conto 'A Roupa Nova do Rei', mostrando o que acontece quando a verdade é dita. Ilustrado por Marcelo Cardinal.",
-      "availability": {
-        "Online": ["Amazon.com.br", "Loja Elo Editorial"]
-      }
-    },
-    {
-      "title": "As Cores da Gatinha Mimi",
-      "author": "Eliana Martins",
-      "imprint": "Perabook",
-      "release_date": "24/01/2022",
-      "synopsis": "A gatinha Mimi muda de cor de acordo com suas emoções. Um livro encantador sobre sentimentos para os pequenos, com a arte de Cris Eich.",
-      "availability": {
-        "São Paulo": ["Livraria da Vila"],
-        "Online": ["Amazon.com.br", "Submarino"]
-      }
-    },
-    {
-      "title": "As estranhas criaturas do Sr. K",
-      "author": "Franz Kafka",
-      "imprint": "Elo Editora",
-      "release_date": "30/03/2024",
-      "synopsis": "Uma adaptação de contos de Kafka para o público jovem, explorando o bizarro e o absurdo. Com a interpretação visual única de Nat Grego.",
-      "availability": {
-        "São Paulo": ["Blooks Livraria"],
-        "Online": ["Amazon.com.br", "Loja Elo Editorial"]
-      }
-    },
-    {
-      "title": "As peripécias da senhora Adélia",
-      "author": "Maria Amália Camargo",
-      "imprint": "Perabook",
-      "release_date": "17/10/2023",
-      "synopsis": "Acompanhe as divertidas e inesperadas aventuras de uma senhora cheia de vida e energia. Ilustrado por Vanessa Prezoto.",
-      "availability": {
-        "Rio de Janeiro": ["Livraria Travessa"],
-        "Online": ["Amazon.com.br"]
-      }
-    },
-    {
-      "title": "As Torres",
-      "author": "Orlando Pedroso",
-      "imprint": "Elo Editora",
-      "release_date": "06/09/2021",
-      "synopsis": "Uma poderosa narrativa visual sobre comunicação e isolamento, contada através da arte de Orlando Pedroso e Rui de Oliveira.",
-      "availability": {
-        "Online": ["Estante Virtual", "Amazon.com.br"]
-      }
-    },
-    {
-      "title": "Autorretrato",
-      "author": "Renata Bueno",
-      "imprint": "Perabook",
-      "release_date": "21/02/2024",
-      "synopsis": "Um livro-objeto que convida o leitor a explorar sua própria identidade através da arte. Criado e ilustrado por Renata Bueno.",
-      "availability": {
-        "São Paulo": ["Blooks Livraria"],
-        "Online": ["Loja Elo Editorial"]
-      }
-    },
-    {
-      "title": "Barata Tonta",
-      "author": "Flávia Savary",
-      "imprint": "Elo Editora",
-      "release_date": "14/06/2022",
-      "synopsis": "Um poema divertido sobre uma barata que se perde e fica tonta. Com as ilustrações bem-humoradas de Bruno Nunes.",
-      "availability": {
-        "Online": ["Amazon.com.br", "Magazine Luiza"]
-      }
-    },
-    {
-      "title": "Barco a Vela",
-      "author": "Milton Célio de Oliveira Filho",
-      "imprint": "Perabook",
-      "release_date": "19/07/2023",
-      "synopsis": "A sensação de liberdade e aventura de velejar em um poema visual. Com a arte serena de Paula Kranz, o livro é um convite à contemplação.",
-      "availability": {
-        "São Paulo": ["Livraria da Vila"],
-        "Online": ["Amazon.com.br"]
-      }
-    },
-    {
-      "title": "Bate-boca",
-      "author": "Claudio Fragata e Raquel Matsushita",
-      "imprint": "Elo Editora",
-      "release_date": "08/03/2022",
-      "synopsis": "Um diálogo poético e visual sobre discussões e pontos de vista. Escrito e ilustrado pela dupla Claudio Fragata e Raquel Matsushita.",
-      "availability": {
-        "Online": ["Loja Elo Editorial", "Amazon.com.br"]
-      }
-    },
-    {
-      "title": "Baticum e o Tambor Real",
-      "author": "Cristiane Velasco e Marina Siqueira",
-      "imprint": "Perabook",
-      "release_date": "23/05/2023",
-      "synopsis": "Uma história sobre ritmo, ancestralidade e a cultura afro-brasileira. Com as vibrantes ilustrações de Bruna Lubambo.",
-      "availability": {
-        "Salvador": ["Livraria LDM"],
-        "Rio de Janeiro": ["Livraria Travessa"],
-        "Online": ["Amazon.com.br"]
-      }
-    },
-    {
-      "title": "Bichão sem coração",
-      "author": "Cristiane Velasco",
-      "imprint": "Elo Editora",
-      "release_date": "12/09/2023",
-      "synopsis": "Será que o 'bichão' é tão mau assim? Uma história sobre aparências e a importância de conhecer o outro de verdade. Ilustrado por Bruna Lubambo.",
-      "availability": {
-        "São Paulo": ["Livraria Leitura"],
-        "Online": ["Amazon.com.br", "Submarino"]
-      }
-    },
-    {
-      "title": "Bloom",
-      "author": "Neville",
-      "imprint": "Perabook",
-      "release_date": "22/05/2023",
-      "synopsis": "Uma graphic novel poética sobre crescimento pessoal e a beleza de florescer no seu próprio tempo. Com a arte marcante de Guilherme Asthma.",
-      "availability": {
-        "São Paulo": ["Livraria da Vila", "Blooks Livraria"],
-        "Curitiba": ["Livrarias Curitiba"],
-        "Online": ["Amazon.com.br", "Loja Elo Editorial"]
-      }
-    }
-  ]
+  "title": "Book Title",
+  "author": "Author Name",
+  "imprint": "Publisher",
+  "release_date": "DD/MM/YYYY",
+  "synopsis": "Book description...",
+  "availability": {
+    "City Name": ["Store 1", "Store 2"],
+    "Online": ["Online Store 1", "Online Store 2"]
+  }
 }
+```
+
+## 📊 Logging
+
+The application logs all interactions and errors to:
+- Console output (for development)
+- `editorial_assistant.log` file
+
+Log levels:
+- **INFO**: User interactions, intent detection
+- **ERROR**: System errors, API failures
+
+## 🔧 Configuration
+
+### Environment Variables
+- `GEMINI_API_KEY`: Your Google Gemini API key (required)
+- `GEMINI_MODEL`: Gemini model to use (default: gemini-1.5-flash)
+
+### LLM Configuration
+The assistant uses Google's Gemini LLM with the following settings:
+- Model: gemini-1.5-flash (configurable)
+- Temperature: 0.7 (balanced creativity/consistency)
+- Max tokens: 1000
+
+## 🚀 Deployment
+
+### Local Development
+```bash
+# CLI version
+python main.py
+
+# API version
+python api.py
+```
+
+### Production Deployment
+For production deployment, consider:
+- Using a production WSGI server (e.g., Gunicorn)
+- Setting up proper logging
+- Adding authentication/authorization
+- Using a proper database instead of JSON files
+- Adding rate limiting
+
+Example with Gunicorn:
+```bash
+pip install gunicorn
+gunicorn -w 4 -k uvicorn.workers.UvicornWorker api:app
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**"GEMINI_API_KEY environment variable is required"**
+- Ensure you have created a `.env` file with your API key
+- Verify the API key is valid and active
+
+**"Failed to initialize Editorial Assistant"**
+- Check your internet connection
+- Verify your Gemini API key has sufficient quota
+- Ensure all dependencies are installed correctly
+
+**Import errors**
+- Run `pip install -r requirements.txt` again
+- Check your Python version (3.8+ required)
+
+### Getting Help
+
+If you encounter issues:
+1. Check the logs in `editorial_assistant.log`
+2. Verify your environment configuration
+3. Ensure all dependencies are installed
+4. Check the Gemini API status
+
+## 🎯 Future Enhancements
+
+- Integration with real databases
+- User authentication and sessions
+- Advanced analytics and reporting
+- Multi-language support
+- Voice interface
+- Integration with e-commerce platforms
+- Real-time chat interface
+- Machine learning for improved intent detection
