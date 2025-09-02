@@ -1,0 +1,29 @@
+[
+  {
+    "id": "TCK-0001",
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "subject": "Book submission inquiry",
+    "message": "I would like to know more about the submission process for children's books.",
+    "timestamp": "2025-09-02T19:09:08.865526",
+    "status": "open"
+  },
+  {
+    "id": "TCK-0002",
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com",
+    "subject": "Store availability question",
+    "message": "Why is my favorite book not available in my city?",
+    "timestamp": "2025-09-02T19:09:08.865711",
+    "status": "open"
+  },
+  {
+    "id": "TCK-0003",
+    "name": "Test User",
+    "email": "test@example.com",
+    "subject": "Test Subject",
+    "message": "Test message content",
+    "timestamp": "2025-09-02T19:12:16.966451",
+    "status": "open"
+  }
+]
