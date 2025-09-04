@@ -17,7 +17,14 @@ DIFERENCIAÇÃO AVANÇADA:
 - Métricas estatísticas avançadas (HHI, Gini, Shannon Entropy)
 """
 
-from enhanced_editorial_assistant import (
+import sys
+import os
+
+# Add src directory to path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, project_root)
+
+from src.application.use_cases.enhanced_editorial_assistant import (
     EnhancedEditorialAssistant,
     get_advanced_market_intelligence,
     get_competitive_analysis,

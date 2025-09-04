@@ -7,10 +7,10 @@ import os
 from typing import Optional
 
 # Add the src directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from src.editorial_assistant import EditorialAssistant
-from src.config import get_logger
+from src.application.use_cases.crewai_compliant_editorial_assistant import CrewAICompliantEditorialAssistant
+from src.infrastructure.config import get_logger
 
 
 class EditorialAssistantCLI:
@@ -21,7 +21,7 @@ class EditorialAssistantCLI:
     def __init__(self):
         """Initialize the CLI"""
         self.logger = get_logger(__name__)
-        self.assistant: Optional[EditorialAssistant] = None
+        self.assistant: Optional[CrewAICompliantEditorialAssistant] = None
         
     def initialize_assistant(self) -> bool:
         """
@@ -32,7 +32,7 @@ class EditorialAssistantCLI:
         """
         try:
             print("🚀 Initializing Editorial Assistant...")
-            self.assistant = EditorialAssistant()
+            self.assistant = CrewAICompliantEditorialAssistant()
             print("✅ Editorial Assistant ready!")
             return True
         except Exception as e:

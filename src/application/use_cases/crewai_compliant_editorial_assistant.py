@@ -238,7 +238,10 @@ class OrchestratorAgent:
         """Extract book title from user input"""
         # First, check for known titles in the catalog
         try:
-            with open("data/mock_catalog.json", 'r', encoding='utf-8') as f:
+            # Adjust path relative to project root from use_cases folder
+            base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+            catalog_path = os.path.join(base_path, "data", "mock_catalog.json")
+            with open(catalog_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 books = data.get("books", [])
                 
@@ -380,8 +383,10 @@ class CrewAICompliantEditorialAssistant:
         print("=" * 60)
         
         # Data paths
-        self.catalog_path = "data/mock_catalog.json"
-        self.tickets_path = "data/mock_tickets.json"
+        # Adjust paths relative to project root from use_cases folder
+        base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        self.catalog_path = os.path.join(base_path, "data", "mock_catalog.json")
+        self.tickets_path = os.path.join(base_path, "data", "mock_tickets.json")
         
         # Initialize agents (exact structure as required)
         self.orchestrator = OrchestratorAgent()

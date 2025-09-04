@@ -8,8 +8,15 @@ and advanced Business Intelligence features for professional evaluation
 import time
 import sys
 import json
+import sys
+import os
 from datetime import datetime
-from enhanced_editorial_assistant_en import EnhancedEditorialAssistant
+
+# Add src directory to path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, project_root)
+
+from src.application.use_cases.enhanced_editorial_assistant_en import EnhancedEditorialAssistant
 
 
 def print_section_header(title: str, emoji: str = "🔹"):

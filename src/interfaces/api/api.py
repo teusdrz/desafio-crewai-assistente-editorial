@@ -10,10 +10,10 @@ from pydantic import BaseModel
 import uvicorn
 
 # Add the src directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from src.editorial_assistant import EditorialAssistant
-from src.config import get_logger
+from src.application.use_cases.crewai_compliant_editorial_assistant import CrewAICompliantEditorialAssistant
+from src.infrastructure.config import get_logger
 
 
 # Pydantic models for API requests
@@ -41,7 +41,7 @@ app = FastAPI(
 )
 
 # Global assistant instance
-assistant: EditorialAssistant = None
+assistant: CrewAICompliantEditorialAssistant = None
 logger = get_logger(__name__)
 
 
@@ -51,7 +51,7 @@ async def startup_event():
     global assistant
     try:
         logger.info("Initializing Editorial Assistant API...")
-        assistant = EditorialAssistant()
+        assistant = CrewAICompliantEditorialAssistant()
         logger.info("Editorial Assistant API ready!")
     except Exception as e:
         logger.error(f"Failed to initialize Editorial Assistant: {str(e)}")

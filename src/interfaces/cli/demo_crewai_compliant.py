@@ -6,10 +6,11 @@ Testing exact technical specification compliance
 import sys
 import os
 
-# Add current directory to path
-sys.path.append(os.path.dirname(__file__))
+# Add src directory to path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, project_root)
 
-from crewai_compliant_editorial_assistant import CrewAICompliantEditorialAssistant
+from src.application.use_cases.crewai_compliant_editorial_assistant import CrewAICompliantEditorialAssistant
 
 def run_demo():
     """Run comprehensive demo of the assistant"""
