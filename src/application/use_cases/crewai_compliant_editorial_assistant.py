@@ -628,7 +628,7 @@ class CrewAICompliantEditorialAssistant:
             # Get or create session for context management
             session = self.session_manager.get_or_create_session(session_id)
             
-            # Clean up expired sessions periodically
+            # Clean up expired sessions periodically (every 10 sessions)
             if len(self.session_manager.sessions) > 10:
                 self.session_manager.cleanup_expired_sessions()
             
