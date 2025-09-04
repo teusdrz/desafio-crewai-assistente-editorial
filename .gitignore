@@ -1,8 +1,13 @@
+# Editorial Assistant - Git Ignore Configuration
+
+# Python bytecode
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
+
+# Build artifacts
 build/
 develop-eggs/
 dist/
