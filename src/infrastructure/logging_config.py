@@ -5,6 +5,7 @@ import logging
 import logging.config
 import os
 from datetime import datetime
+from functools import wraps
 
 def setup_logging(log_level: str = "INFO", log_to_file: bool = True):
     """
@@ -81,6 +82,7 @@ def get_logger(name: str) -> logging.Logger:
 # Performance monitoring decorator
 def log_performance(func):
     """Decorator to log function performance"""
+    @wraps(func)
     def wrapper(*args, **kwargs):
         logger = get_logger(f"{func.__module__}.{func.__name__}")
         start_time = datetime.now()
