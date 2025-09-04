@@ -25,6 +25,10 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass
 
+# Constants
+DEFAULT_SESSION_TIMEOUT_MINUTES = 30
+MAX_CONVERSATION_HISTORY = 3
+
 # Import improved logging system
 try:
     from src.infrastructure.logging_config import setup_logging, get_logger, log_performance
@@ -79,11 +83,11 @@ class SessionContext:
         self.last_activity = datetime.now()
         logger.info(f"Session {self.session_id}: Added interaction with intent '{intent}'")
     
-    def is_expired(self, timeout_minutes: int = 30) -> bool:
+    def is_expired(self, timeout_minutes: int = DEFAULT_SESSION_TIMEOUT_MINUTES) -> bool:
         """Check if session has expired"""
         return datetime.now() - self.last_activity > timedelta(minutes=timeout_minutes)
     
-    def get_recent_context(self, num_interactions: int = 3) -> List[Dict[str, str]]:
+    def get_recent_context(self, num_interactions: int = MAX_CONVERSATION_HISTORY) -> List[Dict[str, str]]:
         """Get recent conversation context"""
         return self.conversation_history[-num_interactions:] if self.conversation_history else []
 
@@ -91,7 +95,7 @@ class SessionContext:
 class SessionManager:
     """Manages user sessions for context maintenance"""
     
-    def __init__(self, session_timeout_minutes: int = 30):
+    def __init__(self, session_timeout_minutes: int = DEFAULT_SESSION_TIMEOUT_MINUTES):
         self.sessions: Dict[str, SessionContext] = {}
         self.timeout_minutes = session_timeout_minutes
         logger.info(f"SessionManager initialized with {session_timeout_minutes}min timeout")
@@ -563,7 +567,7 @@ class CrewAICompliantEditorialAssistant:
         self.tickets_path = os.path.join(base_path, "data", "mock_tickets.json")
         
         # Initialize session management
-        self.session_manager = SessionManager(session_timeout_minutes=30)
+        self.session_manager = SessionManager(session_timeout_minutes=DEFAULT_SESSION_TIMEOUT_MINUTES)
         
         # Initialize agents (exact structure as required)
         self.orchestrator = OrchestratorAgent()
