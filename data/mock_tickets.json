@@ -25,5 +25,19 @@
     "message": "Test message content",
     "timestamp": "2025-09-02T19:12:16.966451",
     "status": "open"
+  },
+  {
+    "id": "TICKET-150205",
+    "message": "Book recommendation needed",
+    "status": "open",
+    "timestamp": "2025-09-04T15:02:05.809963",
+    "created_date": "04/09/2025 15:02:05"
+  },
+  {
+    "id": "TICKET-150209",
+    "message": "Technical issue",
+    "status": "open",
+    "timestamp": "2025-09-04T15:02:09.832103",
+    "created_date": "04/09/2025 15:02:09"
   }
 ]
