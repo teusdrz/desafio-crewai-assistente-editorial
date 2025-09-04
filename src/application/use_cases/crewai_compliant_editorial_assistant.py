@@ -716,13 +716,6 @@ class CrewAICompliantEditorialAssistant:
             message=support_info["message"]
         )
         return response.message
-        response = self.support.open_support_ticket(
-            name=support_info["name"],
-            email=support_info["email"],
-            subject=support_info["subject"],
-            message=support_info["message"]
-        )
-        return response.message
     
     def _handle_unknown_intent(self) -> str:
         """Handle unknown intent"""
