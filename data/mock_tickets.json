@@ -1,43 +1,38 @@
 [
   {
-    "id": "TCK-0001",
-    "name": "John Doe",
-    "email": "john.doe@example.com",
-    "subject": "Book submission inquiry",
-    "message": "I would like to know more about the submission process for children's books.",
-    "timestamp": "2025-09-02T19:09:08.865526",
+    "id": "TCK-20250904154335",
+    "name": "Demo User",
+    "email": "demo@example.com",
+    "subject": "General Support Request",
+    "message": "I need help with my order",
+    "timestamp": "2025-09-04T15:43:35.559077",
     "status": "open"
   },
   {
-    "id": "TCK-0002",
-    "name": "Jane Smith",
-    "email": "jane.smith@example.com",
-    "subject": "Store availability question",
-    "message": "Why is my favorite book not available in my city?",
-    "timestamp": "2025-09-02T19:09:08.865711",
+    "id": "TCK-20250904154448",
+    "name": "Demo User",
+    "email": "demo@example.com",
+    "subject": "General Support Request",
+    "message": "I need help with my order",
+    "timestamp": "2025-09-04T15:44:48.816456",
     "status": "open"
   },
   {
-    "id": "TCK-0003",
+    "id": "TCK-20250904154821",
     "name": "Test User",
     "email": "test@example.com",
-    "subject": "Test Subject",
-    "message": "Test message content",
-    "timestamp": "2025-09-02T19:12:16.966451",
+    "subject": "Analysis Test",
+    "message": "Testing the ticket creation functionality",
+    "timestamp": "2025-09-04T15:48:21.743604",
     "status": "open"
   },
   {
-    "id": "TICKET-150205",
-    "message": "Book recommendation needed",
-    "status": "open",
-    "timestamp": "2025-09-04T15:02:05.809963",
-    "created_date": "04/09/2025 15:02:05"
-  },
-  {
-    "id": "TICKET-150209",
-    "message": "Technical issue",
-    "status": "open",
-    "timestamp": "2025-09-04T15:02:09.832103",
-    "created_date": "04/09/2025 15:02:09"
+    "id": "TCK-20250904154854",
+    "name": "Demo User",
+    "email": "demo@example.com",
+    "subject": "General Support Request",
+    "message": "I need help",
+    "timestamp": "2025-09-04T15:48:54.630314",
+    "status": "open"
   }
 ]
