@@ -22,7 +22,7 @@ import os
 import re
 import uuid
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass
 
 # Import improved logging system
@@ -615,7 +615,7 @@ class CrewAICompliantEditorialAssistant:
             print(f"⚠️ Could not verify catalog: {str(e)}")
     
     @log_performance
-    def process(self, user_input: str, session_id: str = None) -> str:
+    def process(self, user_input: str, session_id: Optional[str] = None) -> str:
         """
         Process user input with manual orchestration and session context
         NO CrewAI orchestration - uses manual agent coordination
@@ -652,7 +652,7 @@ class CrewAICompliantEditorialAssistant:
             logger.error(f"Processing error: {str(e)}")
             return error_msg
     
-    def get_session_id(self, session_id: str = None) -> str:
+    def get_session_id(self, session_id: Optional[str] = None) -> str:
         """Get or create a session ID for the user"""
         if session_id:
             session = self.session_manager.get_session(session_id)
