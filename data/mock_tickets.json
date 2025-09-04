@@ -43,5 +43,14 @@
     "message": "I need help with my order",
     "timestamp": "2025-09-04T16:08:34.969481",
     "status": "open"
+  },
+  {
+    "id": "TCK-20250904162215",
+    "name": "Demo User",
+    "email": "demo@example.com",
+    "subject": "General Support Request",
+    "message": "I need help with my order",
+    "timestamp": "2025-09-04T16:22:15.037124",
+    "status": "open"
   }
 ]

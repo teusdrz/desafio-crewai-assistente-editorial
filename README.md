@@ -23,6 +23,89 @@ python3 -m src.interfaces.cli.demo_crewai_compliant
 python3 -m src.interfaces.api.main
 ```
 
+## 💬 Usage Examples
+
+### Book Discovery
+```python
+# Simple book search
+assistant = CrewAICompliantEditorialAssistant()
+response = assistant.process("Tell me about A Abelha")
+
+# Expected output:
+# 📚 **Book Details**
+# 📖 Title: A Abelha  
+# ✍️ Author: Milton Célio de Oliveira Filho
+# 🏢 Publisher: Elo Editora
+# 📅 Release Date: 15/04/2022
+# 📝 Synopsis: Uma obra delicada que explora...
+```
+
+### Store Location with Context
+```python
+# Find stores (with contextual follow-up)
+session_id = assistant.get_session_id()
+response1 = assistant.process("Tell me about A Baleia-azul", session_id)
+response2 = assistant.process("Where can I buy it?", session_id)  # Uses context!
+
+# Or specify location directly
+response = assistant.process("Where can I buy A Baleia-azul in São Paulo?")
+```
+
+### Support System
+```python
+# Create support ticket
+response = assistant.process("I need help with my order", session_id)
+
+# Expected output:
+# 🎫 **Support Ticket Created**
+# 📋 Ticket ID: TCK-20250904160834
+# 👤 Name: Demo User
+# ✅ Status: Open
+```
+
+### Conversational Flow
+```python
+# Maintaining context across interactions
+session_id = assistant.get_session_id()
+
+# User: "Tell me about A Abelha"
+# Assistant: [Book details]
+
+# User: "Where can I buy it?" ← Uses context from previous interaction
+# Assistant: [Store locations for A Abelha]
+
+# User: "I need help with ordering this book" ← Context-aware support
+# Assistant: [Support ticket with book reference]
+```
+
+### API Integration
+```bash
+# Start the API server
+python3 -m src.interfaces.api.api
+
+# Make requests with curl
+curl -X POST "http://localhost:8000/chat" \
+     -H "Content-Type: application/json" \
+     -d '{"message": "Tell me about A Abelha", "session_id": "user123"}'
+
+# Follow-up with context
+curl -X POST "http://localhost:8000/chat" \
+     -H "Content-Type: application/json" \
+     -d '{"message": "Where can I buy it?", "session_id": "user123"}'
+```
+
+### Command Line Demo
+```bash
+# Run comprehensive testing
+python3 -m src.interfaces.cli.demo_crewai_compliant
+
+# Example output:
+# 🎮 CREWAI COMPLIANT EDITORIAL ASSISTANT DEMO  
+# ✅ Agent structure: Orchestrator + Catalog/Commercial + Support
+# ✅ Tool signatures: get_book_details(), find_stores_selling_book()
+# ✅ Session context management enabled
+```
+
 ## 🏛️ Architecture Philosophy
 
 We believe great software starts with great architecture. This project follows **Clean Architecture** principles combined with **Domain-Driven Design**, ensuring:
@@ -63,15 +146,26 @@ Three specialized agents work together:
 ### Modern Standards
 - **Clean Architecture**: Sustainable, professional codebase
 - **Domain-Driven Design**: Business logic that makes sense
+- **Session Management**: Conversational context across interactions
+- **Comprehensive Logging**: Production-ready monitoring and debugging
 - **Comprehensive Testing**: Reliable, well-tested functionality
 - **API-First Design**: Easy integration with existing systems
 
 ### Quality Assurance
 Every component is designed with reliability in mind:
 - 100% specification compliance testing
-- Professional error handling
+- Session-based context management for natural conversations
+- Professional error handling with detailed logging
+- Performance monitoring and optimization
 - Comprehensive logging and monitoring
 - Production-ready deployment patterns
+
+### Advanced Features
+- **Context Awareness**: Remember previous interactions within sessions
+- **Intelligent Routing**: Context-aware intent detection
+- **Performance Monitoring**: Built-in performance tracking and logging
+- **Session Management**: Automatic cleanup and timeout handling
+- **Error Recovery**: Graceful handling of edge cases
 
 ## 📖 Documentation & Learning
 

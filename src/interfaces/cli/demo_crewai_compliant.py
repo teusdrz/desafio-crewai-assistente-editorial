@@ -27,32 +27,53 @@ def run_demo():
     # Initialize assistant
     assistant = CrewAICompliantEditorialAssistant()
     
+    # Create a session for context testing
+    session_id = assistant.get_session_id()
+    print(f"📱 Session created: {session_id[:8]}...")
+    
     # Comprehensive test cases
     test_cases = [
         {
             "description": "Book Details Request",
             "input": "Tell me details about A Abelha",
-            "expected_tool": "get_book_details()"
+            "expected_tool": "get_book_details()",
+            "session_id": session_id
+        },
+        {
+            "description": "Contextual Store Search",
+            "input": "Where can I buy it?",  # Uses context!
+            "expected_tool": "find_stores_selling_book()",
+            "session_id": session_id  # Same session
         },
         {
             "description": "Store Search with City",
             "input": "Where can I buy A Baleia-azul in São Paulo?",
-            "expected_tool": "find_stores_selling_book()"
+            "expected_tool": "find_stores_selling_book()",
+            "session_id": None  # New session
         },
         {
             "description": "Store Search without City",
             "input": "Where can I buy A Borboleta?",
-            "expected_tool": "find_stores_selling_book()"
+            "expected_tool": "find_stores_selling_book()",
+            "session_id": None
         },
         {
             "description": "Support Ticket Creation",
             "input": "I need help with my order",
-            "expected_tool": "open_support_ticket()"
+            "expected_tool": "open_support_ticket()",
+            "session_id": None
+        },
+        {
+            "description": "Contextual Support",
+            "input": "I need help with this book",  # Uses context
+            "expected_tool": "open_support_ticket()",
+            "session_id": session_id
         },
         {
             "description": "Unknown Intent",
             "input": "Hello there",
-            "expected_tool": "help_message"
+            "expected_tool": "help_message",
+            "session_id": None
         }
     ]
     
@@ -63,10 +84,17 @@ def run_demo():
         print(f"\n🔸 Test {i}: {test_case['description']}")
         print(f"📝 Input: \"{test_case['input']}\"")
         print(f"🎯 Expected Tool: {test_case['expected_tool']}")
+        
+        # Show session context info
+        if test_case.get('session_id'):
+            print(f"🔄 Using session context: {test_case['session_id'][:8]}...")
+        else:
+            print("🆕 New session (no context)")
+        
         print("-" * 50)
         
         try:
-            result = assistant.process(test_case["input"])
+            result = assistant.process(test_case["input"], test_case.get("session_id"))
             print("📤 Response:")
             print(result)
             

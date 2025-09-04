@@ -14,14 +14,29 @@ Technical Requirements:
 - mock_tickets.json starts as empty array []
 - All code, comments, and outputs in English
 - Gemini as base LLM only
+- Session context management for conversational flow
 """
 
 import json
 import os
 import re
-from datetime import datetime
+import uuid
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+
+# Import improved logging system
+try:
+    from src.infrastructure.logging_config import setup_logging, get_logger, log_performance
+    setup_logging(log_level="INFO", log_to_file=True)
+    logger = get_logger(__name__)
+except ImportError:
+    # Fallback to basic logging if config not available
+    import logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+    def log_performance(func):
+        return func  # No-op decorator
 
 # CrewAI-style base tool class (simulated to avoid dependency issues)
 # In a real implementation, this would be: from crewai_tools import BaseTool
@@ -36,6 +51,103 @@ class BaseTool:
         raise NotImplementedError("Subclasses must implement _run method")
 
 import google.generativeai as genai
+
+
+@dataclass
+class SessionContext:
+    """Session context for maintaining conversation state"""
+    session_id: str
+    created_at: datetime
+    last_activity: datetime
+    conversation_history: List[Dict[str, str]]
+    current_book: Optional[str] = None
+    current_city: Optional[str] = None
+    user_preferences: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.user_preferences is None:
+            self.user_preferences = {}
+    
+    def add_interaction(self, user_input: str, assistant_response: str, intent: str):
+        """Add an interaction to the conversation history"""
+        self.conversation_history.append({
+            "timestamp": datetime.now().isoformat(),
+            "user_input": user_input,
+            "assistant_response": assistant_response,
+            "intent": intent
+        })
+        self.last_activity = datetime.now()
+        logger.info(f"Session {self.session_id}: Added interaction with intent '{intent}'")
+    
+    def is_expired(self, timeout_minutes: int = 30) -> bool:
+        """Check if session has expired"""
+        return datetime.now() - self.last_activity > timedelta(minutes=timeout_minutes)
+    
+    def get_recent_context(self, num_interactions: int = 3) -> List[Dict[str, str]]:
+        """Get recent conversation context"""
+        return self.conversation_history[-num_interactions:] if self.conversation_history else []
+
+
+class SessionManager:
+    """Manages user sessions for context maintenance"""
+    
+    def __init__(self, session_timeout_minutes: int = 30):
+        self.sessions: Dict[str, SessionContext] = {}
+        self.timeout_minutes = session_timeout_minutes
+        logger.info(f"SessionManager initialized with {session_timeout_minutes}min timeout")
+    
+    def create_session(self, session_id: str = None) -> SessionContext:
+        """Create a new session"""
+        if session_id is None:
+            session_id = str(uuid.uuid4())
+        
+        now = datetime.now()
+        session = SessionContext(
+            session_id=session_id,
+            created_at=now,
+            last_activity=now,
+            conversation_history=[]
+        )
+        
+        self.sessions[session_id] = session
+        logger.info(f"Created new session: {session_id}")
+        return session
+    
+    def get_session(self, session_id: str) -> Optional[SessionContext]:
+        """Get existing session or None if not found/expired"""
+        if session_id not in self.sessions:
+            return None
+        
+        session = self.sessions[session_id]
+        if session.is_expired(self.timeout_minutes):
+            self.cleanup_session(session_id)
+            logger.info(f"Session {session_id} expired and cleaned up")
+            return None
+        
+        return session
+    
+    def get_or_create_session(self, session_id: str = None) -> SessionContext:
+        """Get existing session or create new one"""
+        if session_id:
+            session = self.get_session(session_id)
+            if session:
+                return session
+        
+        return self.create_session(session_id)
+    
+    def cleanup_session(self, session_id: str):
+        """Remove expired session"""
+        if session_id in self.sessions:
+            del self.sessions[session_id]
+    
+    def cleanup_expired_sessions(self):
+        """Clean up all expired sessions"""
+        expired = [sid for sid, session in self.sessions.items() 
+                  if session.is_expired(self.timeout_minutes)]
+        for sid in expired:
+            self.cleanup_session(sid)
+        if expired:
+            logger.info(f"Cleaned up {len(expired)} expired sessions")
 
 
 class BookDetailsTool(BaseTool):
@@ -298,6 +410,66 @@ class OrchestratorAgent:
             "subject": "General Support Request",
             "message": text
         }
+    
+    # Context-aware methods for session management
+    def detect_intent_with_context(self, user_input: str, session: SessionContext) -> str:
+        """Detect intent with conversation context"""
+        text_lower = user_input.lower()
+        
+        # Check for contextual patterns first
+        recent_context = session.get_recent_context(2)
+        
+        # If user says "where can I buy it" after discussing a book
+        if any(word in text_lower for word in ["it", "that book", "this one"]) and recent_context:
+            for interaction in reversed(recent_context):
+                if interaction["intent"] == "book_details":
+                    return "store_info"
+        
+        # If user says "more details" or similar after store search
+        if any(word in text_lower for word in ["more", "details", "tell me more"]) and recent_context:
+            last_intent = recent_context[-1]["intent"] if recent_context else None
+            if last_intent == "store_info":
+                return "book_details"
+        
+        # Fall back to standard intent detection
+        return self.detect_intent(user_input)
+    
+    def extract_book_title_with_context(self, text: str, session: SessionContext) -> str:
+        """Extract book title with session context"""
+        # First try standard extraction
+        title = self.extract_book_title(text)
+        
+        # If no title found and user refers to previous context
+        if not title:
+            text_lower = text.lower()
+            if any(pronoun in text_lower for pronoun in ["it", "that", "this", "the book"]):
+                if session.current_book:
+                    return session.current_book
+        
+        return title
+    
+    def extract_city_with_context(self, text: str, session: SessionContext) -> Optional[str]:
+        """Extract city with session context"""
+        city = self.extract_city(text)
+        
+        # If no city found, check session context
+        if not city and session.current_city:
+            # If user mentions "same place", "there", etc.
+            text_lower = text.lower()
+            if any(phrase in text_lower for phrase in ["same place", "there", "same city"]):
+                return session.current_city
+        
+        return city
+    
+    def extract_support_info_with_context(self, text: str, session: SessionContext) -> Dict[str, str]:
+        """Extract support info with session context"""
+        support_info = self.extract_support_info(text)
+        
+        # Enhance with context if available
+        if session.current_book:
+            support_info["message"] += f" (Related to book: {session.current_book})"
+        
+        return support_info
 
 
 class CatalogCommercialAgent:
@@ -316,6 +488,7 @@ class CatalogCommercialAgent:
         
         print(f"📚 {self.name} Agent initialized with CrewAI tools")
     
+    @log_performance
     def get_book_details(self, title: str) -> AgentResponse:
         """Get book details using CrewAI tool"""
         try:
@@ -380,6 +553,7 @@ class CrewAICompliantEditorialAssistant:
         print("❌ NO CrewAI orchestration (manual coordination)")
         print("🎯 Agent structure: Orchestrator + Catalog/Commercial + Support")
         print("🧠 Gemini as base LLM only")
+        print("🔄 Session context management enabled")
         print("=" * 60)
         
         # Data paths
@@ -387,6 +561,9 @@ class CrewAICompliantEditorialAssistant:
         base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
         self.catalog_path = os.path.join(base_path, "data", "mock_catalog.json")
         self.tickets_path = os.path.join(base_path, "data", "mock_tickets.json")
+        
+        # Initialize session management
+        self.session_manager = SessionManager(session_timeout_minutes=30)
         
         # Initialize agents (exact structure as required)
         self.orchestrator = OrchestratorAgent()
@@ -437,59 +614,108 @@ class CrewAICompliantEditorialAssistant:
         except Exception as e:
             print(f"⚠️ Could not verify catalog: {str(e)}")
     
-    def process(self, user_input: str) -> str:
+    @log_performance
+    def process(self, user_input: str, session_id: str = None) -> str:
         """
-        Process user input with manual orchestration
+        Process user input with manual orchestration and session context
         NO CrewAI orchestration - uses manual agent coordination
         """
         try:
-            # Step 1: Orchestrator detects intent
-            intent = self.orchestrator.detect_intent(user_input)
-            print(f"🎯 Intent detected: {intent}")
+            # Get or create session for context management
+            session = self.session_manager.get_or_create_session(session_id)
+            
+            # Clean up expired sessions periodically
+            if len(self.session_manager.sessions) > 10:
+                self.session_manager.cleanup_expired_sessions()
+            
+            # Step 1: Orchestrator detects intent with context awareness
+            intent = self.orchestrator.detect_intent_with_context(user_input, session)
+            logger.info(f"Session {session.session_id}: Intent detected - {intent}")
             
             # Step 2: Route to appropriate agent based on intent
             if intent == "book_details":
-                return self._handle_book_details(user_input)
-            
+                response = self._handle_book_details(user_input, session)
             elif intent == "store_info":
-                return self._handle_store_info(user_input)
-            
+                response = self._handle_store_info(user_input, session)
             elif intent == "support":
-                return self._handle_support(user_input)
-            
+                response = self._handle_support(user_input, session)
             else:
-                return self._handle_unknown_intent()
+                response = self._handle_unknown_intent()
+            
+            # Step 3: Add interaction to session context
+            session.add_interaction(user_input, response, intent)
+            
+            return response
         
         except Exception as e:
-            return f"❌ Processing error: {str(e)}"
+            error_msg = f"❌ Processing error: {str(e)}"
+            logger.error(f"Processing error: {str(e)}")
+            return error_msg
     
-    def _handle_book_details(self, user_input: str) -> str:
-        """Handle book details request"""
-        title = self.orchestrator.extract_book_title(user_input)
+    def get_session_id(self, session_id: str = None) -> str:
+        """Get or create a session ID for the user"""
+        if session_id:
+            session = self.session_manager.get_session(session_id)
+            if session:
+                return session_id
+        
+        # Create new session
+        session = self.session_manager.create_session()
+        return session.session_id
+    
+    def _handle_book_details(self, user_input: str, session: SessionContext) -> str:
+        """Handle book details request with session context"""
+        title = self.orchestrator.extract_book_title_with_context(user_input, session)
         if not title:
-            return "❓ Could you specify which book you'd like details about?"
+            # Check if we can use context from previous conversation
+            recent_context = session.get_recent_context(2)
+            if recent_context and session.current_book:
+                title = session.current_book
+                logger.info(f"Using book from session context: {title}")
+            else:
+                return "❓ Could you specify which book you'd like details about?"
+        
+        # Update session context
+        session.current_book = title
         
         # Use Catalog/Commercial agent with CrewAI tool
         response = self.catalog_commercial.get_book_details(title)
         return response.message
     
-    def _handle_store_info(self, user_input: str) -> str:
-        """Handle store information request"""
-        title = self.orchestrator.extract_book_title(user_input)
-        city = self.orchestrator.extract_city(user_input)
+    def _handle_store_info(self, user_input: str, session: SessionContext) -> str:
+        """Handle store information request with session context"""
+        title = self.orchestrator.extract_book_title_with_context(user_input, session)
+        city = self.orchestrator.extract_city_with_context(user_input, session)
+        
+        # Use context if available
+        if not title and session.current_book:
+            title = session.current_book
+            logger.info(f"Using book from session context: {title}")
         
         if not title:
             return "❓ Which book are you looking to buy?"
+        
+        # Update session context
+        session.current_book = title
+        if city:
+            session.current_city = city
         
         # Use Catalog/Commercial agent with CrewAI tool
         response = self.catalog_commercial.find_stores_selling_book(title, city)
         return response.message
     
-    def _handle_support(self, user_input: str) -> str:
-        """Handle support request"""
-        support_info = self.orchestrator.extract_support_info(user_input)
+    def _handle_support(self, user_input: str, session: SessionContext) -> str:
+        """Handle support request with session context"""
+        support_info = self.orchestrator.extract_support_info_with_context(user_input, session)
         
         # Use Support agent with CrewAI tool
+        response = self.support.open_support_ticket(
+            name=support_info["name"],
+            email=support_info["email"],
+            subject=support_info["subject"],
+            message=support_info["message"]
+        )
+        return response.message
         response = self.support.open_support_ticket(
             name=support_info["name"],
             email=support_info["email"],
