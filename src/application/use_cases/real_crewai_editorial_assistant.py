@@ -152,7 +152,7 @@ class SessionManager:
 class GetBookDetailsTool(BaseTool):
     """Real CrewAI tool for getting book details with exact signature"""
     name: str = "get_book_details"
-    description: str = "Get detailed information about a book from the catalog. Input should be the book title as a string."
+    description: str = "Get detailed information about a book from the catalog. Use this when user asks about book details, author information, or synopsis. Input should be the book title."
     
     def __init__(self, catalog_path: str):
         super().__init__()
@@ -197,8 +197,8 @@ class GetBookDetailsTool(BaseTool):
 
 class FindStoresSellingBookTool(BaseTool):
     """Real CrewAI tool for finding stores selling a book with exact signature"""
-    name: str = "find_stores_selling_book"
-    description: str = "Find stores that sell a specific book, optionally filtered by city. Input format: book_title,city (city is optional)"
+    name: str = "find_stores_selling_book" 
+    description: str = "Find stores that sell a specific book, optionally filtered by city. Use this when user asks where to buy a book or store locations. Input should be 'book_title' or 'book_title,city'."
     
     def __init__(self, catalog_path: str):
         super().__init__()
@@ -207,9 +207,13 @@ class FindStoresSellingBookTool(BaseTool):
     def _run(self, query: str) -> str:
         """Find stores selling book - handles both signatures"""
         # Parse input - can be "title" or "title,city"
-        parts = query.split(',')
-        book_title = parts[0].strip()
-        city = parts[1].strip() if len(parts) > 1 else None
+        if ',' in query:
+            parts = query.split(',', 1)
+            book_title = parts[0].strip()
+            city = parts[1].strip() if len(parts) > 1 else None
+        else:
+            book_title = query.strip()
+            city = None
         
         try:
             with open(self.catalog_path, 'r', encoding='utf-8') as f:
@@ -251,7 +255,7 @@ class FindStoresSellingBookTool(BaseTool):
 class OpenSupportTicketTool(BaseTool):
     """Real CrewAI tool for opening support tickets with exact signature"""
     name: str = "open_support_ticket"
-    description: str = "Open a support ticket for customer assistance. Input format: name,email,subject,message"
+    description: str = "Open a support ticket for customer assistance. Use this when user needs help or support. Input should be 'name,email,subject,message'."
     
     def __init__(self, tickets_path: str):
         super().__init__()
@@ -259,15 +263,19 @@ class OpenSupportTicketTool(BaseTool):
     
     def _run(self, ticket_info: str) -> str:
         """Open support ticket - exact signature as required"""
-        # Parse input: "name,email,subject,message"
-        parts = ticket_info.split(',', 3)  # Split into max 4 parts
-        if len(parts) < 4:
-            return "❌ Invalid ticket format. Use: name,email,subject,message"
-        
-        name = parts[0].strip()
-        email = parts[1].strip()
-        subject = parts[2].strip()
-        message = parts[3].strip()
+        # For demo purposes, use default info if not properly formatted
+        if ',' in ticket_info and len(ticket_info.split(',')) >= 4:
+            parts = ticket_info.split(',', 3)
+            name = parts[0].strip()
+            email = parts[1].strip()
+            subject = parts[2].strip()
+            message = parts[3].strip()
+        else:
+            # Use demo info for user request
+            name = "Demo User"
+            email = "demo@example.com"
+            subject = "General Support Request"
+            message = ticket_info
         
         # Generate ticket ID
         timestamp = datetime.now()
@@ -533,8 +541,8 @@ class RealCrewAIEditorialAssistant:
                 session.current_book = book_title
             
             return [Task(
-                description=f"Get detailed information about the book '{book_title or user_input}' including title, author, publisher, release date, synopsis, and availability.",
-                expected_output="Formatted book details with availability information",
+                description=f"Use the get_book_details tool to find comprehensive information about the book '{book_title or user_input}'. Include title, author, publisher, release date, synopsis, and availability information. Format the response in a user-friendly way with clear sections.",
+                expected_output="Formatted book details including all available information about the book with availability and purchase options",
                 agent=self.catalog_agent
             )]
         
@@ -545,28 +553,32 @@ class RealCrewAIEditorialAssistant:
             if not book_title and session.current_book:
                 book_title = session.current_book
             
-            query = book_title or "book from context"
+            # Prepare input for the tool
             if city:
-                query += f",{city}"
+                tool_input = f"{book_title},{city}"
                 session.current_city = city
+                task_description = f"Use the find_stores_selling_book tool with input '{tool_input}' to find stores in {city} that sell '{book_title}'. If not available in that city, show online options."
+            else:
+                tool_input = book_title or "requested book"
+                task_description = f"Use the find_stores_selling_book tool with input '{tool_input}' to find all stores and locations where the book is available for purchase."
             
             return [Task(
-                description=f"Find stores that sell the book '{book_title or 'mentioned book'}' {f'in {city}' if city else 'in all available locations'}",
-                expected_output="List of stores and locations where the book is available",
+                description=task_description,
+                expected_output="List of stores and locations where the book can be purchased, formatted clearly for the user",
                 agent=self.catalog_agent
             )]
         
         elif intent == "support":
             return [Task(
-                description=f"Create a support ticket for the user's request: '{user_input}'. Use demo information for missing details.",
-                expected_output="Confirmation of created support ticket with details",
+                description=f"Use the open_support_ticket tool to create a support ticket for the user's request: '{user_input}'. Since this is a demo, use 'Demo User,demo@example.com,General Support Request,{user_input}' as the input format.",
+                expected_output="Confirmation message with ticket details including ticket ID, status, and next steps",
                 agent=self.support_agent
             )]
         
         else:
             return [Task(
-                description="Provide helpful guidance about available services (book details, store locations, support)",
-                expected_output="Clear explanation of available services with examples",
+                description="Provide helpful guidance about the available services. Explain that you can help with book details, finding store locations, and customer support. Give clear examples of how users can interact with the system.",
+                expected_output="Clear, friendly explanation of available services with practical examples of how to use them",
                 agent=self.orchestrator_agent
             )]
     
