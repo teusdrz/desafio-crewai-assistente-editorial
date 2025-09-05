@@ -1,22 +1,26 @@
-# 📚 Editorial Assistant - Intelligent Book Discovery Platform
+# 📚 Real CrewAI Editorial Assistant - Intelligent Book Discovery Platform
 
 ## About This Project
 
-Welcome to the Editorial Assistant, a sophisticated multiagent system designed to revolutionize how readers discover and access books. Built with modern software architecture principles, this platform combines the power of artificial intelligence with a clean, maintainable codebase.
+Welcome to the Real CrewAI Editorial Assistant, a sophisticated multiagent system built with **actual CrewAI agents, tasks, and orchestration**. This platform revolutionizes how readers discover and access books using real AI agent collaboration with professional software architecture.
 
 ### What Makes This Different
 
-This isn't just another chatbot. We've crafted an intelligent assistant that understands the nuances of book discovery, store locations, and customer support - all while maintaining professional software development standards.
+This is a **real CrewAI implementation** featuring authentic agent orchestration, not simulated tools. We use genuine CrewAI agents with specific roles, real CrewAI tasks for coordination, and Gemini LLM integration through CrewAI's framework - all while maintaining professional software development standards.
 
 ## 🚀 Getting Started
 
-Ready to explore? Here's how to get up and running:
+Ready to explore real CrewAI in action? Here's how to get up and running:
 
 ```bash
 # First, install the necessary dependencies
 pip install -r requirements.txt
 
-# Launch the assistant for an interactive demo
+# Set up your environment (copy and configure)
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
+
+# Launch the real CrewAI assistant for interactive demo
 python3 -m src.interfaces.cli.demo_crewai_compliant
 
 # Or start the API server for integration
@@ -25,10 +29,10 @@ python3 -m src.interfaces.api.main
 
 ## 💬 Usage Examples
 
-### Book Discovery
+### Book Discovery with Real CrewAI
 ```python
-# Simple book search
-assistant = CrewAICompliantEditorialAssistant()
+# Simple book search using real CrewAI agents
+assistant = RealCrewAIEditorialAssistant()
 response = assistant.process("Tell me about A Abelha")
 
 # Expected output:
