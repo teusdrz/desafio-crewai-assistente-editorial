@@ -153,15 +153,14 @@ class GetBookDetailsTool(BaseTool):
     """Real CrewAI tool for getting book details with exact signature"""
     name: str = "get_book_details"
     description: str = "Get detailed information about a book from the catalog. Use this when user asks about book details, author information, or synopsis. Input should be the book title."
-    
-    def __init__(self, catalog_path: str):
-        super().__init__()
-        self.catalog_path = catalog_path
+    catalog_path: str = ""
     
     def _run(self, book_title: str) -> str:
         """Get book details - exact signature as required"""
         try:
-            with open(self.catalog_path, 'r', encoding='utf-8') as f:
+            # Use the catalog_path set from outside
+            catalog_path = self.catalog_path or os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "mock_catalog.json")
+            with open(catalog_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 books = data.get("books", [])
         except Exception as e:
@@ -197,12 +196,9 @@ class GetBookDetailsTool(BaseTool):
 
 class FindStoresSellingBookTool(BaseTool):
     """Real CrewAI tool for finding stores selling a book with exact signature"""
-    name: str = "find_stores_selling_book" 
+    name: str = "find_stores_selling_book"
     description: str = "Find stores that sell a specific book, optionally filtered by city. Use this when user asks where to buy a book or store locations. Input should be 'book_title' or 'book_title,city'."
-    
-    def __init__(self, catalog_path: str):
-        super().__init__()
-        self.catalog_path = catalog_path
+    catalog_path: str = ""
     
     def _run(self, query: str) -> str:
         """Find stores selling book - handles both signatures"""
@@ -256,10 +252,7 @@ class OpenSupportTicketTool(BaseTool):
     """Real CrewAI tool for opening support tickets with exact signature"""
     name: str = "open_support_ticket"
     description: str = "Open a support ticket for customer assistance. Use this when user needs help or support. Input should be 'name,email,subject,message'."
-    
-    def __init__(self, tickets_path: str):
-        super().__init__()
-        self.tickets_path = tickets_path
+    tickets_path: str = ""
     
     def _run(self, ticket_info: str) -> str:
         """Open support ticket - exact signature as required"""
@@ -294,7 +287,8 @@ class OpenSupportTicketTool(BaseTool):
         
         # Load existing tickets
         try:
-            with open(self.tickets_path, 'r', encoding='utf-8') as f:
+            tickets_path = self.tickets_path or os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "mock_tickets.json")
+            with open(tickets_path, 'r', encoding='utf-8') as f:
                 tickets = json.load(f)
         except:
             tickets = []
@@ -304,7 +298,7 @@ class OpenSupportTicketTool(BaseTool):
         
         # Save tickets
         try:
-            with open(self.tickets_path, 'w', encoding='utf-8') as f:
+            with open(tickets_path, 'w', encoding='utf-8') as f:
                 json.dump(tickets, f, indent=2, ensure_ascii=False)
         except Exception as e:
             return f"❌ Error saving ticket: {str(e)}"
@@ -358,9 +352,14 @@ class RealCrewAIEditorialAssistant:
         self.llm = self._setup_gemini_llm()
         
         # Initialize real CrewAI tools
-        self.book_details_tool = GetBookDetailsTool(self.catalog_path)
-        self.store_selling_tool = FindStoresSellingBookTool(self.catalog_path)
-        self.support_ticket_tool = OpenSupportTicketTool(self.tickets_path)
+        self.book_details_tool = GetBookDetailsTool()
+        self.book_details_tool.catalog_path = self.catalog_path
+        
+        self.store_selling_tool = FindStoresSellingBookTool()
+        self.store_selling_tool.catalog_path = self.catalog_path
+        
+        self.support_ticket_tool = OpenSupportTicketTool()
+        self.support_ticket_tool.tickets_path = self.tickets_path
         
         # Initialize real CrewAI agents
         self._setup_agents()
@@ -369,11 +368,12 @@ class RealCrewAIEditorialAssistant:
         self._ensure_data_compliance()
     
     def _setup_gemini_llm(self):
-        """Setup Gemini LLM through CrewAI"""
+        """Setup Gemini LLM through CrewAI with fallback for demo"""
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
-            logger.error("GEMINI_API_KEY not found in environment")
-            raise ValueError("GEMINI_API_KEY is required")
+            logger.warning("GEMINI_API_KEY not found - running in demo mode")
+            # Return None for demo mode - agents will work with direct tool calls
+            return None
         
         try:
             llm = ChatGoogleGenerativeAI(
@@ -386,7 +386,8 @@ class RealCrewAIEditorialAssistant:
             return llm
         except Exception as e:
             logger.error(f"Failed to setup Gemini LLM: {str(e)}")
-            raise
+            logger.warning("Falling back to demo mode")
+            return None
     
     def _setup_agents(self):
         """Setup real CrewAI agents with specific roles and goals"""
@@ -471,6 +472,13 @@ class RealCrewAIEditorialAssistant:
             intent = self._detect_intent(user_input, session)
             logger.info(f"Session {session.session_id}: Intent detected - {intent}")
             
+            # Demo mode fallback when no LLM available
+            if self.llm is None:
+                logger.info("Running in demo mode - direct tool execution")
+                response = self._demo_direct_execution(user_input, intent, session)
+                session.add_interaction(user_input, response, intent)
+                return response
+            
             # Create CrewAI tasks based on intent
             tasks = self._create_tasks_for_intent(user_input, intent, session)
             
@@ -496,6 +504,42 @@ class RealCrewAIEditorialAssistant:
             logger.error(f"Processing error: {str(e)}")
             return error_msg
     
+    def _demo_direct_execution(self, user_input: str, intent: str, session: SessionContext) -> str:
+        """Execute tools directly in demo mode when no LLM available"""
+        
+        if intent == "book_details":
+            book_title = self._extract_book_title_with_context(user_input, session)
+            if book_title:
+                session.current_book = book_title
+                return self.book_details_tool._run(book_title)
+            # Extract book name from input if available
+            return self.book_details_tool._run(user_input.replace("Tell me about", "").replace("about", "").strip())
+        
+        elif intent == "store_info":
+            book_title = self._extract_book_title_with_context(user_input, session)
+            city = self._extract_city_with_context(user_input, session)
+            
+            if not book_title and session.current_book:
+                book_title = session.current_book
+            
+            if city:
+                return self.store_selling_tool._run(f"{book_title},{city}")
+            else:
+                return self.store_selling_tool._run(book_title or "book")
+        
+        elif intent == "support":
+            return self.support_ticket_tool._run(user_input)
+        
+        else:
+            return """🤖 **CrewAI Editorial Assistant (Demo Mode)**
+
+I can help you with:
+📚 **Book Details** - "Tell me about A Abelha"
+🏪 **Store Locations** - "Where can I buy A Baleia-azul?"  
+🎫 **Customer Support** - "I need help with my order"
+
+Try one of these examples!"""
+
     def _detect_intent(self, user_input: str, session: SessionContext) -> str:
         """Detect user intent with context awareness"""
         text_lower = user_input.lower()
