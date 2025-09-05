@@ -377,7 +377,7 @@ class RealCrewAIEditorialAssistant:
         
         try:
             llm = ChatGoogleGenerativeAI(
-                model="gemini-pro",
+                model="gemini-1.5-flash",
                 google_api_key=api_key,
                 temperature=0.3,
                 convert_system_message_to_human=True
