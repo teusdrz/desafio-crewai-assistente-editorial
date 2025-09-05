@@ -1,5 +1,5 @@
 """
-Command Line Interface for the Editorial Assistant
+Command Line Interface for the Real CrewAI Editorial Assistant
 """
 
 import sys
@@ -9,34 +9,34 @@ from typing import Optional
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from src.application.use_cases.crewai_compliant_editorial_assistant import CrewAICompliantEditorialAssistant
+from src.application.use_cases.real_crewai_editorial_assistant import RealCrewAIEditorialAssistant
 from src.infrastructure.config import get_logger
 
 
-class EditorialAssistantCLI:
+class RealCrewAIEditorialAssistantCLI:
     """
-    Command Line Interface for the Editorial Assistant
+    Command Line Interface for the Real CrewAI Editorial Assistant
     """
     
     def __init__(self):
         """Initialize the CLI"""
         self.logger = get_logger(__name__)
-        self.assistant: Optional[CrewAICompliantEditorialAssistant] = None
+        self.assistant: Optional[RealCrewAIEditorialAssistant] = None
         
     def initialize_assistant(self) -> bool:
         """
-        Initialize the Editorial Assistant
+        Initialize the Real CrewAI Editorial Assistant
         
         Returns:
             bool: True if successful, False otherwise
         """
         try:
-            print("🚀 Initializing Editorial Assistant...")
-            self.assistant = CrewAICompliantEditorialAssistant()
-            print("✅ Editorial Assistant ready!")
+            print("🚀 Initializing Real CrewAI Editorial Assistant...")
+            self.assistant = RealCrewAIEditorialAssistant()
+            print("✅ Real CrewAI Editorial Assistant ready!")
             return True
         except Exception as e:
-            print(f"❌ Failed to initialize Editorial Assistant: {str(e)}")
+            print(f"❌ Failed to initialize Real CrewAI Editorial Assistant: {str(e)}")
             print("\nPlease ensure you have:")
             print("1. Set the GEMINI_API_KEY in your .env file")
             print("2. Installed all required dependencies: pip install -r requirements.txt")
@@ -45,7 +45,7 @@ class EditorialAssistantCLI:
     def display_welcome_message(self):
         """Display welcome message"""
         print("\n" + "="*60)
-        print("📚 Welcome to Elo Editorial Group Assistant")
+        print("📚 Welcome to Real CrewAI Editorial Assistant")
         print("="*60)
         print("\nI can help you with:")
         print("• 📖 Book details and information")
@@ -145,7 +145,7 @@ class EditorialAssistantCLI:
 
 def main():
     """Main entry point"""
-    cli = EditorialAssistantCLI()
+    cli = RealCrewAIEditorialAssistantCLI()
     cli.run()
 
 

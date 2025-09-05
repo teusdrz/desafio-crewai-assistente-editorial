@@ -1,5 +1,5 @@
 """
-FastAPI Web Interface for the Editorial Assistant
+FastAPI Web Interface for the Real CrewAI Editorial Assistant
 """
 
 import sys
@@ -12,7 +12,7 @@ import uvicorn
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from src.application.use_cases.crewai_compliant_editorial_assistant import CrewAICompliantEditorialAssistant
+from src.application.use_cases.real_crewai_editorial_assistant import RealCrewAIEditorialAssistant
 from src.infrastructure.config import get_logger
 
 
@@ -41,20 +41,20 @@ app = FastAPI(
 )
 
 # Global assistant instance
-assistant: CrewAICompliantEditorialAssistant = None
+assistant: RealCrewAIEditorialAssistant = None
 logger = get_logger(__name__)
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize the Editorial Assistant on startup"""
+    """Initialize the Real CrewAI Editorial Assistant on startup"""
     global assistant
     try:
-        logger.info("Initializing Editorial Assistant API...")
-        assistant = CrewAICompliantEditorialAssistant()
-        logger.info("Editorial Assistant API ready!")
+        logger.info("Initializing Real CrewAI Editorial Assistant API...")
+        assistant = RealCrewAIEditorialAssistant()
+        logger.info("Real CrewAI Editorial Assistant API ready!")
     except Exception as e:
-        logger.error(f"Failed to initialize Editorial Assistant: {str(e)}")
+        logger.error(f"Failed to initialize Real CrewAI Editorial Assistant: {str(e)}")
         raise
 
 
